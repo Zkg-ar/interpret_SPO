@@ -190,40 +190,35 @@ public class Parser
         return false;
     }
 
-    private void if_while_do_body() throws LanguageException
-    {
+    private void if_while_do_body() throws LanguageException {
         Token currentToken;
         int[] begin_end = {1, 0};
 
         ArrayList<Token> body = new ArrayList<>();
 
-        for(;counter < tokens.size(); counter++)
-        {
+        for (; counter < tokens.size(); counter++) {
             currentToken = tokens.get(counter);
 
-            if(BEGIN())
-            {
+            if (BEGIN()) {
                 ++begin_end[0];
+                --counter;
 
                 body.add(currentToken);
-            }
-            else if(END())
-            {
+            } else if (END()) {
                 ++begin_end[1];
 
-                if(begin_end[0] == begin_end[1])
+                if (begin_end[0] == begin_end[1])
                     break;
                 else
                     body.add(currentToken);
-            }
-            else if(ELSE())
-            {
+                --counter;
+            } else if (ELSE()) {
                 if (begin_end[0] == begin_end[1] + 1)
                     break;
                 else
                     body.add(currentToken);
-            }
-            else
+                --counter;
+            } else
                 body.add(currentToken);
         }
 

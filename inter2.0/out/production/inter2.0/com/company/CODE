@@ -1,12 +1,4 @@
 
 
-
-    var b = 10 + (  7 * (  8 * ( 8 + ( 9 + 9 ) )   ) ) ;
-    var a = 1 ;
-    var c = 2 ;
-  WHILE  a < 10
-    BEGIN
-        c = c * 2 ;
-        a = a + 1 ;
-    END
-
+ var a = 10 ;
+  var b = 10 + (  7 * (  a * ( 8 + ( a + 9 ) ) ) ) ;
