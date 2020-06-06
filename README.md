@@ -75,3 +75,36 @@ END WHILE a < 20 ;
 a = 120
 b = 10
 ```  
+#### Пример 6. LL
+```Java
+var a ;
+var c ;
+var d ;
+var e ;
+
+LinkedList b = new ;
+b # add ( 10 , 0 ) ;
+b # add ( 11 , 1 ) ;
+b # add ( 12 , 2 ) ;
+b # add ( 14 , 3 ) ;
+
+a = b # get ( 0 ) ;
+c = b # get ( 1 ) ;
+d = b # get ( 2 ) ;
+e = b # get ( 3 ) ;
+
+var size ;
+
+
+b # remove ( 1 ) ;
+
+size = b # getSize ( ) ;
+```
+```
+a = 10
+c = 11
+d = 12
+e = 14
+b = #LinkedList
+size = 3
+```
