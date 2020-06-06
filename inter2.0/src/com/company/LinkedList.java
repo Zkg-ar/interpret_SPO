@@ -91,7 +91,7 @@ public class LinkedList<Item> implements Iterable<Item>
         return buf.getValue();
     }
 
-    public boolean isEmpty() { return size == 0; }
+    
 
     public void set(Item value, int position) throws LanguageException
     {
