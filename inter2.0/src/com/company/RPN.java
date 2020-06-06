@@ -6,24 +6,18 @@ import java.util.Stack;
 public class RPN
 {
 
-    /// Та самая таблица меременных из интерпретатора #1 - объявление
+ 
 
     private final Token result;
 
     private final Interpreter interpreter;
 
 
-    /**
-     *
-     * Убрал все выводы, их слишком много, тем более они не будут дальше нужны
-     *
-     */
-
     public RPN(ArrayList<Token> tokens, Interpreter interpreter) throws LanguageException
     {
 
         this.interpreter = interpreter;
-        /// Та самая таблица меременных из интерпретатора #2 - указание ссылки
+        
 
 
         this.result = calculateRPN(createRPN(tokens));
