@@ -1,6 +1,7 @@
 package com.company;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class Interpreter
 {
@@ -26,6 +27,10 @@ public class Interpreter
                 process_AST_WHILE((AST_WHILE) ast);
             else if(ast instanceof AST_DO)
                 process_AST_DO((AST_DO) ast);
+            else if(ast instanceof AST_LINKED_LIST)
+                process_AST_LINKED_LIST((AST_LINKED_LIST) ast);
+            else if(ast instanceof AST_FUNCTION_CALL_STATEMENT)
+                process_AST_FUNCTION_CALL_STATEMENT((AST_FUNCTION_CALL_STATEMENT) ast);
             else
                 throw new LanguageException("Неизвестное дерево");
         }
@@ -36,22 +41,90 @@ public class Interpreter
         {
             System.out.print(var.getID() + " = ");
             if(var.getValue() != null)
-                System.out.println(var.getValue().getValue());
-            else
-                System.out.println("NULL");
+                if(var.getValue() instanceof Token)
+                    System.out.println(((Token)var.getValue()).getValue());
+                else if(var.getValue() instanceof LinkedList)
+                    System.out.println("#LinkedList");
+                else
+                    System.out.println("NULL");
         }
     }
 
 
+    private Token process_AST_FUNCTION_CALL_STATEMENT(AST_FUNCTION_CALL_STATEMENT ast_function_call_statement) throws LanguageException
+    {
+        Object ll = checkInVariablesTable(ast_function_call_statement.getID_token().getValue()).getValue();
+
+        if(ll != null && ll instanceof LinkedList)
+        {
+            switch (ast_function_call_statement.functionID.getType())
+            {
+                case ADD_FORWARD:
+                    ((LinkedList) ll).addForward(new RPN(ast_function_call_statement.params.get(0), this).getResult());
+                    break;
+
+                case ADD_BACKWARD:
+                    ((LinkedList) ll).addBackward( new RPN(ast_function_call_statement.params.get(0), this).getResult());
+                    break;
+
+                case ADD:
+                    ((LinkedList) ll).add( new RPN(ast_function_call_statement.params.get(0), this).getResult(),
+                            Integer.parseInt(new RPN(ast_function_call_statement.params.get(1), this).getResult().getValue()));
+                    break;
+
+                case SET:
+                    ((LinkedList) ll).set( new RPN(ast_function_call_statement.params.get(0), this).getResult(),
+                            Integer.parseInt(new RPN(ast_function_call_statement.params.get(1), this).getResult().getValue()));
+                    break;
+
+                case GET:
+                    return (Token) ((LinkedList) ll).get(Integer.parseInt(new RPN(ast_function_call_statement.params.get(0), this).getResult().getValue()));
+
+                case REMOVE:
+                    ((LinkedList) ll).remove(Integer.parseInt(new RPN(ast_function_call_statement.params.get(0), this).getResult().getValue()));
+                    break;
+
+                case GET_SIZE:
+                    return new Token(Integer.toString(((LinkedList) ll).getSize()), TokenType.DIGIT);
+            }
+        }
+
+        return null;
+    }
+
+    private void process_AST_LINKED_LIST(AST_LINKED_LIST ast_linked_list) throws LanguageException
+    {
+        if(checkInVariablesTable(ast_linked_list.getID_token().getValue()) == null)
+            addVariable(ast_linked_list.getID_token().getValue(), new LinkedList<Token>());
+        else
+            throw new LanguageException("Переменная уже существует");
+    }
 
     /**
      * Обработка Деревьев
      */
     private void process_AST_VARIABLE_DECLARATION(AST_VARIABLE_DECLARATION ast_variable_declaration) throws LanguageException
     {
-        if(checkInVariablesTable(ast_variable_declaration.getID_token().getValue()) == null)
+        Variable var = checkInVariablesTable(ast_variable_declaration.getID_token().getValue());
+
+
+        if(var == null)
             if(ast_variable_declaration.tokens.size() != 0)
-                addVariable(ast_variable_declaration.getID_token().getValue(), new RPN(ast_variable_declaration.tokens, this).getResult());
+            {
+                try
+                {
+                    addVariable(ast_variable_declaration.getID_token().getValue(), new RPN(ast_variable_declaration.tokens, this).getResult());
+                }
+                catch (Exception ignored)
+                {
+                    Token res = process_AST_FUNCTION_CALL_STATEMENT((AST_FUNCTION_CALL_STATEMENT) new AST(ast_variable_declaration.tokens).getAST().get(0));
+                    if (res != null)
+                        addVariable(ast_variable_declaration.getID_token().getValue(), res);
+                    else
+                        throw new LanguageException("Невозможно обработать функцию");
+                }
+
+            }
             else
                 addVariable(ast_variable_declaration.getID_token().getValue(), null);
         else
@@ -66,7 +139,21 @@ public class Interpreter
         Variable var = checkInVariablesTable(ast_assignment_statement.getID_token().getValue());
 
         if(var != null)
-            var.setValue(new RPN(ast_assignment_statement.tokens, this).getResult());
+        {
+            try
+            {
+                var.setValue(new RPN(ast_assignment_statement.tokens, this).getResult());
+            }
+            catch (Exception ignored)
+            {
+                Token res = process_AST_FUNCTION_CALL_STATEMENT((AST_FUNCTION_CALL_STATEMENT) new AST(ast_assignment_statement.tokens).getAST().get(0));
+
+                if (res != null)
+                    var.setValue(res);
+                else
+                    throw new LanguageException("Невозможно обработать функцию");
+            }
+        }
         else
             throw new LanguageException("Переменной не существует");
     }
@@ -132,11 +219,10 @@ public class Interpreter
     /**
      * Добавление переменной
      */
-    private void addVariable(String ID, Token value)
+    private void addVariable(String ID, Object value)
     {
         variablesTable.add(new Variable(ID, value));
     }
-
 
     /**
      * Проверка есть ли такая переменная
@@ -166,15 +252,16 @@ public class Interpreter
 class Variable
 {
     private final String ID;
-    private Token value;
+    private Object value;
 
-    Variable(String ID, Token value)
+    Variable(String ID, Object value)
     {
         this.ID = ID;
         this.value = value;
     }
 
-    public Token getValue() { return value; }
+    public Object getValue() { return value; }
+
     public String getID() { return ID; }
     public void setValue(Token value) { this.value = value; }
 }

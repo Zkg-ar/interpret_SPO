@@ -1,8 +1,23 @@
 package com.company;
 
 public enum TokenType
-
 {
+
+
+    LINKED_LIST,
+    NEW,
+    SHARP,
+    COMMA,
+
+    ADD_FORWARD,
+    ADD_BACKWARD,
+    ADD,
+    GET,
+    SET,
+    REMOVE,
+    GET_SIZE,
+
+
 
     IF,
     ELSE,
@@ -14,7 +29,7 @@ public enum TokenType
 
     ASSIGN_OP,
     OP,
-    COMP_OP,
+
 
     DIGIT,
     BOOLEAN,

@@ -29,7 +29,7 @@ public class Main {
     {
         StringBuilder stringBuilder = new StringBuilder();
         try {
-            FileReader fr = new FileReader("C:\\Users\\Asus\\Desktop\\уник\\java\\inter2.0\\src\\com\\company\\CODE");
+            FileReader fr = new FileReader("C:\\Users\\Asus\\Desktop\\уник\\java\\interpret_SPO\\inter2.0\\src\\com\\company\\CODE");
             Scanner scan = new Scanner(fr);
 
             while (scan.hasNextLine())

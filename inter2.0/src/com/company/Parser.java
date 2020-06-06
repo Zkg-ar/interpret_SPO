@@ -23,7 +23,26 @@ public class Parser
                 if (!if_expression())
                     if (!while_expression())
                         if (!do_expression())
-                            throw new LanguageException("Ошибка в выражении");
+                            if(!linked_list_expression())
+                                throw new LanguageException("Ошибка в выражении");
+    }
+
+    private boolean linked_list_expression() throws LanguageException
+    {
+        if(LINKED_LIST())
+            if(VARIABLE())
+                if(ASSIGN_OPERAND())
+                    if (NEW())
+                        if (END_OF_STRING())
+                            return true;
+                        else
+                            throw new LanguageException("Ошибка : EndOfStr не найдено");
+                    else
+                        throw new LanguageException("Ошибка : new пропущено");
+                else
+                    throw new LanguageException("Ошибка : = пропущено");
+
+        return false;
     }
 
 
@@ -56,11 +75,67 @@ public class Parser
                     else
                         throw new LanguageException("Ошибка : EndOfStr пропущено");
                 }
+                else if(SHARP())
+                {
+                    if(FUNCTION_CALL())
+                        if(END_OF_STRING())
+                            return true;
+                        else
+                            throw new LanguageException("Ошибка : Неизвестная функция или неверные аргументы");
+                }
                 else
                     throw new LanguageException("Ошибка в обработке выражения");
         }
 
         return false;
+    }
+
+    private boolean FUNCTION_CALL() throws LanguageException
+    {
+        if(ADD_FORWARD() || ADD_BACKWARD())
+        {
+            if(LEFT_ROUNDED_BRACKET())
+            {
+                expression();
+                return true;
+            }
+
+            return false;
+        }
+        else if(ADD() || SET())
+        {
+            if(LEFT_ROUNDED_BRACKET())
+            {
+                expression();
+                if (COMMA())
+                {
+                    expression();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        else if(GET() || REMOVE())
+        {
+            if(LEFT_ROUNDED_BRACKET())
+            {
+                expression();
+                return true;
+            }
+
+            return false;
+        }
+        else if(GET_SIZE())
+        {
+            if(LEFT_ROUNDED_BRACKET())
+                if (RIGHT_ROUNDED_BRACKET())
+                    return END_OF_STRING();
+
+            return false;
+        }
+
+        return true;
     }
 
 
@@ -84,6 +159,17 @@ public class Parser
                 if(!OPERATION())
                     if(RIGHT_ROUNDED_BRACKET())
                         flag = false;
+                    else if(COMMA())
+                    {
+                        --counter;
+                        return;
+                    }
+                    else if(SHARP())
+                    {
+                        if(!FUNCTION_CALL())
+                            throw new LanguageException("Ошибка в обработке функции");
+                        --counter;
+                    }
                     else
                         throw new LanguageException("Пропущен знак операции");
                 else
@@ -228,6 +314,9 @@ public class Parser
     }
 
 
+    private boolean LINKED_LIST() throws LanguageException { return match(TokenType.LINKED_LIST); }
+    private boolean NEW() throws LanguageException { return match(TokenType.NEW); }
+
     private boolean VARIABLE_DECLARATION() throws LanguageException { return match(TokenType.VARIABLE_DECLARATION); }
     private boolean WHILE() throws LanguageException { return match(TokenType.WHILE); }
     private boolean DO() throws LanguageException { return match(TokenType.DO); }
@@ -245,11 +334,23 @@ public class Parser
 
     private boolean ASSIGN_OPERAND() throws LanguageException { return match(TokenType.ASSIGN_OP); }
     private boolean OPERATION() throws LanguageException { return match( TokenType.OP); }
+    private boolean SHARP() throws LanguageException { return match( TokenType.SHARP); }
+    private boolean COMMA() throws LanguageException { return match( TokenType.COMMA); }
 
     private boolean LEFT_ROUNDED_BRACKET() throws LanguageException { return match( TokenType.LeftRoundBracket); }
     private boolean RIGHT_ROUNDED_BRACKET() throws LanguageException { return match( TokenType.RightRoundBracket); }
 
     private boolean END_OF_STRING() throws LanguageException { return match(TokenType.EndOfStr); }
+
+
+    private boolean ADD_FORWARD() throws LanguageException { return match(TokenType.ADD_FORWARD); }
+    private boolean ADD_BACKWARD() throws LanguageException { return match(TokenType.ADD_BACKWARD); }
+    private boolean ADD() throws LanguageException { return match(TokenType.ADD); }
+    private boolean REMOVE() throws LanguageException { return match(TokenType.REMOVE); }
+    private boolean GET() throws LanguageException { return match(TokenType.GET); }
+    private boolean SET() throws LanguageException { return match(TokenType.SET); }
+    private boolean GET_SIZE() throws LanguageException { return match(TokenType.GET_SIZE); }
+
 
 
     private boolean match(TokenType necessaryType) throws LanguageException

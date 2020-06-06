@@ -65,6 +65,10 @@ public class AST
                 processIF();
                 break;
 
+            case LINKED_LIST:
+                processLinkedListDeclaration();
+                break;
+
             default:
                 throw new LanguageException("Ошибка");
 
@@ -246,31 +250,109 @@ public class AST
 
     private void processAssignmentState(Token ID) throws LanguageException
     {
-        Token currentToken;
+        Token currentToken = tokens.get(position);
 
-        current_ast = new AST_ASSIGNMENT_STATEMENT(ID);
-
-        ++position;
-
-        for(;position < tokens.size(); position++)
+        if(currentToken.getType() == TokenType.SHARP)
         {
-            currentToken = tokens.get(position);
+            current_ast = new AST_FUNCTION_CALL_STATEMENT(ID);
 
-            if(currentToken.getType() != TokenType.EndOfStr)
-                current_ast.add(currentToken);
-            else
+            ++position;
+
+            ((AST_FUNCTION_CALL_STATEMENT)current_ast).functionID = tokens.get(position);
+
+            position+=2;
+
+            currentToken = tokens.get(position);
+            while(currentToken.getType() != TokenType.RightRoundBracket)
             {
+                current_ast.add(currentToken);
                 ++position;
-                break;
+                currentToken = tokens.get(position);
+            }
+
+            position+=2;
+        }
+        else
+        {
+            current_ast = new AST_ASSIGNMENT_STATEMENT(ID);
+
+            ++position;
+
+            for(;position < tokens.size(); position++)
+            {
+                currentToken = tokens.get(position);
+
+                if(currentToken.getType() != TokenType.EndOfStr)
+                    current_ast.add(currentToken);
+                else
+                {
+                    ++position;
+                    break;
+                }
             }
         }
 
         current_ast.process();
+    }
 
+    private void processLinkedListDeclaration() throws LanguageException
+    {
+        Token currentToken = tokens.get(position);
+
+        current_ast = new AST_LINKED_LIST(currentToken);
+
+        position+=4;
+
+        current_ast.process();
     }
 }
 
 
+
+class AST_FUNCTION_CALL_STATEMENT extends AST_TYPE
+{
+    private Token ID_token;
+    public Token functionID;
+    public ArrayList<ArrayList<Token>> params;
+
+    AST_FUNCTION_CALL_STATEMENT(Token ID) { setID_token(ID); }
+
+    private void setID_token(Token ID_token){ this.ID_token = ID_token; }
+    public Token getID_token() { return ID_token; }
+
+
+    @Override
+    protected void process() throws LanguageException
+    {
+        params = new ArrayList<>();
+
+        ArrayList<Token> buffer = new ArrayList<>();
+
+        for(Token token : this.tokens)
+        {
+            if(token.getType() == TokenType.COMMA)
+            {
+                params.add(buffer);
+                buffer = new ArrayList<>();
+            }
+            else
+                buffer.add(token);
+        }
+        params.add(buffer);
+        tokens = null;
+    }
+}
+
+
+class AST_LINKED_LIST extends AST_TYPE
+{
+    private Token ID_token;
+
+    AST_LINKED_LIST(Token ID) { setID_token(ID); }
+
+    private void setID_token(Token ID_token){ this.ID_token = ID_token; }
+    public Token getID_token() { return ID_token; }
+}
 
 
 class AST_VARIABLE_DECLARATION extends AST_TYPE
