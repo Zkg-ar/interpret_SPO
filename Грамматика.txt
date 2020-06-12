@@ -26,7 +26,8 @@ COMP_OP >|<|>=|<=
 IF->if				
 LB->(				
 RB->)				
-BEGIN -> BEGIN			
-END -> END			
+BEGIN -> {		
+END -> }
+ELSE -> else
 WHILE->while			
 DO-> do				
